@@ -2,22 +2,38 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Number List</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DIDComm Number List</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
         <h1 class="text-2xl font-bold text-center mb-4">DIDComm Number List</h1>
-        <button id="getNumberListBtn"
-            class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+        <!-- STEP 1: Start Proof Request -->
+        <button id="startProofBtn"
+            class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
             Get Number List
         </button>
-        <div id="responseArea" class="mt-4 p-4 border rounded text-gray-700 flex items-center">
-            <span id="responseText"></span>
-            <svg id="spinner" class="animate-spin h-5 w-5 text-blue-500 ml-2 hidden" xmlns="http://www.w3.org/2000/svg"
+
+        <!-- STEP 2: Credential Selection -->
+        <div id="credSection" class="hidden mb-4">
+            <label for="credSelect" class="block text-gray-700 font-medium mb-2">Select Credential</label>
+            <select id="credSelect"
+                class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2">
+            </select>
+            <button id="sendPresentationBtn"
+                class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                Send Presentation
+            </button>
+        </div>
+
+        <!-- RESPONSE AREA -->
+        <div id="responseArea" class="mt-2 p-4 border rounded bg-gray-100 flex items-center space-x-2">
+            <span id="responseText" class="text-gray-700"></span>
+            <svg id="spinner" class="animate-spin h-5 w-5 text-blue-500 hidden" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
@@ -28,42 +44,96 @@
     </div>
 
     <script>
-        const button = document.getElementById('getNumberListBtn');
-        const responseText = document.getElementById('responseText');
-        const responseArea = document.getElementById('responseArea');
-        const spinner = document.getElementById('spinner');
+        const startBtn = document.getElementById("startProofBtn");
+        const credSection = document.getElementById("credSection");
+        const credSelect = document.getElementById("credSelect");
+        const sendBtn = document.getElementById("sendPresentationBtn");
+        const respText = document.getElementById("responseText");
+        const spinner = document.getElementById("spinner");
+        let holderPresExId = null;
 
-        button.addEventListener('click', async () => {
-            responseText.textContent = 'Sending request...';
-            spinner.classList.remove('hidden');
-            responseArea.classList.remove('bg-red-100', 'bg-green-100', 'bg-yellow-100');
-            responseArea.classList.add('bg-blue-100');
+        // Helper to set response area state
+        function setState(colorClass, text) {
+            respText.textContent = text;
+            spinner.classList.toggle("hidden", !colorClass.includes("blue"));
+            respText.parentNode.className = `mt-2 p-4 border rounded bg-${colorClass}`;
+        }
 
-            try {
-                const response = await fetch('http://localhost:5000/get_number_list', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                const data = await response.json();
-
-                spinner.classList.add('hidden');
-                if (response.ok) {
-                    responseText.textContent = `Success: ${data.message}\nNumbers: ${data.numbers.join(', ')}`;
-                    responseArea.classList.remove('bg-blue-100');
-                    responseArea.classList.add('bg-green-100');
-                } else {
-                    responseText.textContent = `Error: ${data.error}`;
-                    responseArea.classList.remove('bg-blue-100');
-                    responseArea.classList.add('bg-red-100');
+        // Function to poll for pending presentations
+        async function pollForPendingPresentations() {
+            let attempts = 0;
+            const maxAttempts = 10; // Adjust based on expected delay
+            while (attempts < maxAttempts) {
+                const res = await fetch("/pending_presentations");
+                const pending = await res.json();
+                if (pending.length > 0) {
+                    return pending[pending.length - 1]; // Get the latest pres_ex_id
                 }
-            } catch (error) {
-                spinner.classList.add('hidden');
-                responseText.textContent = `Request failed: ${error.message}`;
-                responseArea.classList.remove('bg-blue-100');
-                responseArea.classList.add('bg-red-100');
+                attempts++;
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            }
+            throw new Error("No pending presentations found after multiple attempts");
+        }
+
+        // STEP 1: send proof request and get holder's pres_ex_id
+        startBtn.addEventListener("click", async () => {
+            setState("blue-100", "Requesting proof…");
+            credSection.classList.add("hidden");
+            try {
+                // Initiate proof request (verifier-side)
+                const res = await fetch("/start_proof", { method: "POST" });
+                const j = await res.json();
+                if (!res.ok) throw new Error(j.error || res.statusText);
+
+                // Poll for holder's pres_ex_id
+                setState("blue-100", "Waiting for holder to receive request…");
+                holderPresExId = await pollForPendingPresentations();
+            } catch (e) {
+                return setState("red-100", `Error: ${e.message}`);
+            }
+
+            // STEP 2: fetch credentials with holder's pres_ex_id
+            setState("yellow-100", "Fetching credentials…");
+            try {
+                const res = await fetch(`/fetch_credentials/${holderPresExId}`);
+                const creds = await res.json();
+                if (!res.ok) throw new Error(creds.error || res.statusText);
+
+                // populate dropdown
+                credSelect.innerHTML = "";
+                creds.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = c.cred_id;
+                    opt.textContent = Object.values(c.attrs).join(" | ");
+                    credSelect.appendChild(opt);
+                });
+                credSection.classList.remove("hidden");
+                setState("yellow-100", "Select a credential and click ‘Send Presentation’");
+            } catch (e) {
+                setState("red-100", `Error fetching credentials: ${e.message}`);
+            }
+        });
+
+        // STEP 3: send selected presentation
+        sendBtn.addEventListener("click", async () => {
+            setState("blue-100", "Sending presentation…");
+            try {
+                const res = await fetch("/send_presentation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        pres_ex_id: holderPresExId,
+                        cred_id: credSelect.value
+                    })
+                });
+                const j = await res.json();
+                if (res.ok) {
+                    setState("green-100", `✅ ${j.message}. Numbers: ${j.numbers.join(", ")}`);
+                } else {
+                    throw new Error(j.error || res.statusText);
+                }
+            } catch (e) {
+                setState("red-100", `Error: ${e.message}`);
             }
         });
     </script>

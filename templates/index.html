@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Number List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-4">DIDComm Number List</h1>
+        <button id="getNumberListBtn"
+            class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Get Number List
+        </button>
+        <div id="responseArea" class="mt-4 p-4 border rounded text-gray-700 flex items-center">
+            <span id="responseText"></span>
+            <svg id="spinner" class="animate-spin h-5 w-5 text-blue-500 ml-2 hidden" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        const button = document.getElementById('getNumberListBtn');
+        const responseText = document.getElementById('responseText');
+        const responseArea = document.getElementById('responseArea');
+        const spinner = document.getElementById('spinner');
+
+        button.addEventListener('click', async () => {
+            responseText.textContent = 'Sending request...';
+            spinner.classList.remove('hidden');
+            responseArea.classList.remove('bg-red-100', 'bg-green-100', 'bg-yellow-100');
+            responseArea.classList.add('bg-blue-100');
+
+            try {
+                const response = await fetch('http://localhost:5000/get_number_list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                spinner.classList.add('hidden');
+                if (response.ok) {
+                    responseText.textContent = `Success: ${data.message}\nNumbers: ${data.numbers.join(', ')}`;
+                    responseArea.classList.remove('bg-blue-100');
+                    responseArea.classList.add('bg-green-100');
+                } else {
+                    responseText.textContent = `Error: ${data.error}`;
+                    responseArea.classList.remove('bg-blue-100');
+                    responseArea.classList.add('bg-red-100');
+                }
+            } catch (error) {
+                spinner.classList.add('hidden');
+                responseText.textContent = `Request failed: ${error.message}`;
+                responseArea.classList.remove('bg-blue-100');
+                responseArea.classList.add('bg-red-100');
+            }
+        });
+    </script>
+</body>
+
+</html>

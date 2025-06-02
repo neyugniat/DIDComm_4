@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holder Messenger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chat-bubble-sent {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            color: white;
+            border-radius: 1rem 1rem 0 1rem;
+            max-width: 70%;
+            margin-left: auto;
+        }
+
+        .chat-bubble-received {
+            background: #e5e7eb;
+            color: black;
+            border-radius: 1rem 1rem 1rem 0;
+            max-width: 70%;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 h-screen flex flex-col">
+    <div class="container mx-auto p-6 max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-800">Holder Messenger</h1>
+            <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                Back to Wallet
+            </a>
+        </div>
+        <div class="mb-4">
+            <label for="connection" class="block text-sm font-medium text-gray-700 mb-1">Select Recipient</label>
+            <select id="connection"
+                class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Select a connection</option>
+            </select>
+        </div>
+        <div class="chat-container p-4 mb-4 h-96 overflow-y-auto">
+            <div id="chat" class="flex flex-col space-y-2"></div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <textarea id="message"
+                class="flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows="2" placeholder="Type your message..."></textarea>
+            <button id="send"
+                class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200">Send</button>
+        </div>
+    </div>
+    <script src="/static/js/messenger.js"></script>
+</body>
+
+</html>

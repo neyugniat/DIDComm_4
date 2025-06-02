@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DIDComm Connections</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .connection-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        pre {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6 max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-800">DIDComm Connections</h1>
+            <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                Back to Wallet
+            </a>
+        </div>
+
+        <!-- Create Invitation (Issuer) -->
+        <div class="connection-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Create Connection Invitation</h2>
+            <div class="flex space-x-4 mb-4">
+                <button id="verifierFetchBtn"
+                    class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Create Verifier's Invitation
+                </button>
+            </div>
+
+            <div id="connection-details" class="hidden">
+                <p class="text-gray-700 mb-2"><strong>Invitation URL:</strong></p>
+                <a id="verifierInvitationUrl" href="#" class="text-indigo-500 underline break-all" target="_blank"></a>
+                <div id="verifierQRCode" class="mt-4 flex justify-center"></div>
+
+                <p class="text-gray-700 mt-4 mb-2"><strong>Invitation JSON:</strong></p>
+                <div class="relative">
+                    <pre id="verifierInvitationJson" class="text-gray-600"></pre>
+                    <button id="verifierCopyBtn"
+                        class="absolute top-2 right-2 bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 transition duration-200 hidden">
+                        Copy JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receive Invitation (Holder) -->
+        <div class="connection-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Receive Connection Invitation (Holder)</h2>
+            <label for="holderInvitationInput" class="block text-sm font-medium text-gray-700 mb-1">Paste Invitation
+                JSON</label>
+            <textarea id="holderInvitationInput"
+                class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows="8" placeholder="Paste invitation JSON here"></textarea>
+            <button id="holderReceiveBtn"
+                class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200 mt-4">
+                Connect to Verifier
+            </button>
+        </div>
+
+        <!-- Success and Error Messages -->
+        <div id="success-message" class="text-green-600 mb-4 hidden p-4 bg-green-100 rounded-lg"></div>
+        <div id="error-message" class="text-red-600 mb-4 hidden p-4 bg-red-100 rounded-lg"></div>
+    </div>
+
+    <script src="/static/js/verifier_connecting.js"></script>
+</body>
+
+</html>

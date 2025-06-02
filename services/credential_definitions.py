@@ -1,0 +1,59 @@
+from typing import Any, Dict, List, Optional
+import httpx
+from pydantic import BaseModel
+from config import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+class CredentialDefinition(BaseModel):
+    credential_definition_id: str
+    schema_id: Optional[str] = None
+    tag: Optional[str] = None
+
+async def fetch_credential_definition_id_list(agent_url: str) -> List[CredentialDefinition]:
+    url = f"{agent_url}/credential-definitions/created"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            cred_def_ids = data.get("credential_definition_ids", [])
+            return [CredentialDefinition(credential_definition_id=cred_def_id) for cred_def_id in cred_def_ids]
+    except httpx.RequestError as e:
+        logger.error(f"Request error while fetching credential definitions from {agent_url}: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching credential definitions: {e}")
+    return []
+
+async def fetch_credential_definition_details(agent_url: str, cred_def_id: str) -> Dict[str, Any]:
+    url = f"{agent_url}/credential-definitions/{cred_def_id}"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as e:
+        logger.error(f"Request error while fetching credential definition details from {agent_url}: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching credential definition details: {e}")
+    return {}
+
+async def fetch_all_issuer_credential_definition_details() -> List[Dict[str, Any]]:
+    cred_def_id_list = await fetch_issuer_credential_definition_id_list()
+    cred_def_list_details = []
+    for cred_def in cred_def_id_list:
+        detail = await fetch_credential_definition_details(settings.ISSUER_AGENT_URL, cred_def.credential_definition_id)
+        if detail:
+            cred_def_list_details.append(detail)
+    return cred_def_list_details
+
+async def fetch_issuer_credential_definition_id_list():
+    return await fetch_credential_definition_id_list(settings.ISSUER_AGENT_URL)
+
+async def fetch_credential_definition_details_by_id(cred_def_id: str) -> Optional[Dict[str, Any]]:
+    try:
+        return await fetch_credential_definition_details(settings.ISSUER_AGENT_URL, cred_def_id)
+    except Exception as e:
+        logger.error(f"Error fetching credential definition details for {cred_def_id}: {e}")
+        return None

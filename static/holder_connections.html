@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holder Connections</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .connection-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6 max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-800">Holder Connections</h1>
+            <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                Back to Wallet
+            </a>
+        </div>
+        <div class="connection-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Connection List</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-50 text-indigo-800">
+                            <th class="p-3">Label</th>
+                            <th class="p-3">State</th>
+                            <th class="p-3">Connection ID</th>
+                            <th class="p-3">Their DID</th>
+                            <th class="p-3">Created At</th>
+                            <th class="p-3">Updated At</th>
+                            <th class="p-3">Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="connectionsTable" class="text-gray-700">
+                        <!-- Connections will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="noConnections" class="text-gray-600 mt-4 hidden">No connections found.</p>
+        </div>
+        <div id="success-message" class="text-green-600 mb-4 hidden p-4 bg-green-100 rounded-lg"></div>
+        <div id="error-message" class="text-red-600 mb-4 hidden p-4 bg-red-100 rounded-lg"></div>
+    </div>
+    <script src="/static/js/holder_connections.js"></script>
+</body>
+
+</html>

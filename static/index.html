@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .schema-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .schema-container:hover {
+            transform: scale(1.01);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6 max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-800">User Wallet</h1>
+            <a href="/messenger"
+                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                Contact Issuer
+            </a>
+        </div>
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+        <!-- Wallet Section -->
+        <div class="schema-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Your Credentials</h2>
+            <div class="mb-2">
+                <button id="view-credentials"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    View Credentials
+                </button>
+            </div>
+            <div class="mb-2">
+                <a href="/jwt_wallet"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Your JWT Credentials
+                </a>
+            </div>
+            <div>
+                <a href="/connections/holder/display"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Your Connections
+                </a>
+            </div>
+        </div>
+
+        <div class="schema-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Issuer A</h2>
+            <div class="mb-2">
+                <a href="/issuer_connecting"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Connect to Issuer A
+                </a>
+            </div>
+            <div class="mb-2">
+                <a href="/credentials"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Request a Credential
+                </a>
+            </div>
+            <div class="mb-2">
+                <a href="/issuer/issue_credential"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Issuer issue a Credential
+                </a>
+            </div>
+            <div>
+                <a href="/jwt_credentials"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Get a JWT Verifiable Credential
+                </a>
+            </div>
+        </div>
+        <div class="schema-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Verifier B</h2>
+            <div class="mb-2">
+                <a href="/verifier_connecting"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Connect to Verifier B
+                </a>
+            </div>
+            <div class="mb-2">
+                <a href="/presentations"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Verify a Credential Automatically
+                </a>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-2">
+                <div>
+                    <a href="/verifier/graduated_presentation"
+                        class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                        Graduation Presentation Verification
+                    </a>
+                </div>
+                <div>
+                    <a href="/verifier/age_presentation"
+                        class="block w-full text-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                        Age Presentation Verification
+                    </a>
+                </div>
+            </div>
+            <div>
+                <a href="/api_test"
+                    class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Test VP-JWT with API call
+                </a>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div id="credential-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 transition duration-300">
+            <div
+                class="schema-container p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-white rounded-xl shadow-xl transform transition duration-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-indigo-800">Credentials</h2>
+                    <button id="close-modal"
+                        class="text-gray-600 hover:text-gray-800 hover:scale-110 transition transform duration-200 ease-in-out">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="wallet-loading" class="text-center mb-4 hidden">Loading credentials...</div>
+                <div id="wallet-error" class="text-red-600 mb-4 p-4 bg-red-100 rounded-lg hidden"></div>
+                <div id="credential-list" class="space-y-4">
+                    <!-- Credential items will be inserted here by JS -->
+                    <!-- Example:
+                    <div class="p-4 border rounded-lg hover:shadow-lg hover:border-indigo-500 transition duration-200 cursor-pointer">
+                        Credential content here...
+                    </div>
+                    -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/wallet.js"></script>
+</body>
+
+</html>

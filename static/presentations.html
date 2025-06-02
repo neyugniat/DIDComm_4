@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Automated Presentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .schema-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col">
+    <div class="container mx-auto p-6 max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-800">Request Automated Presentation</h1>
+            <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                Back to Wallet
+            </a>
+        </div>
+        <!-- Toast Notification Container -->
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+        <!-- Presentation Section -->
+        <div class="schema-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Request Proof of Name</h2>
+            <button id="request-presentation"
+                class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200 w-full sm:w-auto">
+                Send Proof Request
+            </button>
+        </div>
+        <div id="success-message" class="text-green-600 mb-4 hidden p-4 bg-green-100 rounded-lg"></div>
+        <div id="generic-error" class="text-red-600 mb-4 hidden p-4 bg-red-100 rounded-lg"></div>
+    </div>
+    <script src="/static/js/presentations.js"></script>
+</body>
+
+</html>

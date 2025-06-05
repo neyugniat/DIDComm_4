@@ -14,6 +14,10 @@ from routes import register_routes
 from webhooks.basicmessages import router as basicmessages_router
 from webhooks.issue_credential_v2_0 import router as issue_credential_v2_0_router
 from webhooks.present_proof_v2_0 import router as present_proof_v2_0_router
+from webhooks.connections import router as connections_router
+from webhooks.issue_credential_v2_0_indy import router as issue_credential_v2_0_indy_router
+from webhooks.revocation_registry import router as revocation_registry_router
+from webhooks.issuer_cred_rev import router as issuer_cred_rev_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,6 +49,10 @@ register_routes(app)
 app.include_router(basicmessages_router, prefix="/webhooks/topic/basicmessages")
 app.include_router(issue_credential_v2_0_router, prefix="/webhooks/topic/issue_credential_v2_0")
 app.include_router(present_proof_v2_0_router, prefix="/webhooks/topic/present_proof_v2_0")
+app.include_router(connections_router, prefix="/webhooks/topic/connections")
+app.include_router(issue_credential_v2_0_indy_router, prefix="/webhooks/topic/issue_credential_v2_0_indy")
+app.include_router(revocation_registry_router, prefix="/webhooks/topic/revocation_registry")
+app.include_router(issuer_cred_rev_router, prefix=("/webhooks/topic/issuer_cred_rev"))
 
 @app.get("/")
 async def root():
@@ -53,25 +61,32 @@ async def root():
 
 @app.get("/issuer_connecting", response_class=HTMLResponse)
 async def get_connections():
-    """Serve the connections UI."""
     with open("static/issuer_connecting.html") as f:
         return HTMLResponse(content=f.read())
     
+@app.get("/schemas", response_class=HTMLResponse)
+async def get_connections():
+    with open("static/schemas.html") as f:
+        return HTMLResponse(content=f.read())
+    credential_definitions
+
+@app.get("/credential_definitions", response_class=HTMLResponse)
+async def get_connections():
+    with open("static/credential_definitions.html") as f:
+        return HTMLResponse(content=f.read())  
+    
 @app.get("/verifier_connecting", response_class=HTMLResponse)
 async def get_connections():
-    """Serve the connections UI."""
     with open("static/verifier_connecting.html") as f:
         return HTMLResponse(content=f.read())
     
 @app.get("/connections/holder/display", response_class=HTMLResponse)
 async def get_holder_connections():
-    """Serve the holder connections UI."""
     with open("static/holder_connections.html") as f:
         return HTMLResponse(content=f.read())
 
 @app.get("/messenger", response_class=HTMLResponse)
 async def get_messenger():
-    """Serve the messenger UI."""
     with open("static/messenger.html") as f:
         return HTMLResponse(content=f.read())
 
@@ -82,7 +97,6 @@ async def get_messenger_connection(connection_id: str):
     
 @app.get("/credentials", response_class=HTMLResponse)
 async def get_credentials():
-    """Serve the credentials UI."""
     with open("static/credentials.html") as f:
         return HTMLResponse(content=f.read())
     
@@ -95,6 +109,11 @@ async def get_credential_details(referent: str):
 async def get_presentations():
     with open("static/presentations.html") as f:
         return HTMLResponse(content=f.read())
+
+@app.get("/manual_presentations", response_class=HTMLResponse)
+async def get_presentations():
+    with open("static/manual_presentations.html") as f:
+        return HTMLResponse(content=f.read())   
     
 @app.get("/jwt_credentials", response_class=HTMLResponse)
 async def get_jwt_credentials():

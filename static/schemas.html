@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Age Verification</title>
+    <title>Schema Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .presentation-container {
@@ -139,44 +139,55 @@
 <body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex flex-col">
     <div id="toast-message" class="hidden">
         <span></span>
-        <span id="toast-close">&times;</span>
+        <span id="toast-close">×</span>
     </div>
     <div class="container mx-auto p-6 max-w-3xl">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-800">Age Verification</h1>
+            <h1 class="text-3xl font-bold text-indigo-800">Schema Management</h1>
             <a href="/" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200">
                 Back to Wallet
             </a>
         </div>
+
+        <!-- Section 1: Create Can_Cuoc_Cong_Dan Schema -->
         <div class="presentation-container p-6 mb-6">
-            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Send Proof Request</h2>
-            <label for="connectionSelect" class="block text-sm font-medium text-gray-700 mb-1">Select Holder
-                Connection</label>
-            <select id="connectionSelect"
-                class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4">
-                <option value="">Select a connection</option>
-            </select>
-            <button id="sendProofRequest"
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Create Can_Cuoc_Cong_Dan Schema</h2>
+            <button id="createCanCuocCongDan"
                 class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200">
-                Send Proof Request
+                Create Can_Cuoc_Cong_Dan Schema
             </button>
         </div>
+
+        <!-- Section 2: Create Bang_tot_nghiep Schema -->
         <div class="presentation-container p-6 mb-6">
-            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Send Presentation</h2>
-            <label for="credentialSelect" class="block text-sm font-medium text-gray-700 mb-1">Select Credential</label>
-            <select id="credentialSelect"
-                class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4">
-                <option value="">Select a credential</option>
-            </select>
-            <div id="credentialDetails"></div>
-            <button id="sendPresentation"
-                class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200 mt-4">
-                Send Presentation
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Create Bang_tot_nghiep Schema</h2>
+            <button id="createBangTotNghiep"
+                class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200">
+                Create Bang_tot_nghiep Schema
             </button>
         </div>
+
+        <!-- Section 3: Create Custom Schema -->
+        <div class="presentation-container p-6 mb-6">
+            <h2 class="text-lg font-semibold text-indigo-800 mb-4">Create Custom Schema</h2>
+            <div class="flex flex-col gap-2">
+                <input id="custom-schema-name" type="text" placeholder="Schema Name (e.g., CustomSchema)"
+                    class="p-2 border rounded-lg w-full" />
+                <input id="custom-schema-version" type="text" placeholder="Schema Version (e.g., 1.0)"
+                    class="p-2 border rounded-lg w-full" />
+                <input id="custom-schema-attributes" type="text"
+                    placeholder="Attributes (comma-separated, e.g., field1,field2,field3)"
+                    class="p-2 border rounded-lg w-full" />
+                <button id="createCustomSchema"
+                    class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition duration-200">
+                    Create Custom Schema
+                </button>
+            </div>
+        </div>
+
         <div id="error-message" class="text-red-600 mb-4 hidden p-4 bg-red-100 rounded-lg"></div>
     </div>
-    <script src="/static/js/age_presentation.js"></script>
+    <script src="/static/js/schemas.js"></script>
 </body>
 
 </html>

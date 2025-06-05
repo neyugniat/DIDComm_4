@@ -2,6 +2,20 @@ let holderPresExId = null;
 let credentials = [];
 let threadId = null;
 
+async function fetchIssuerDid() {
+    try {
+        const response = await fetch('/did/issuer', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const data = await response.json();
+        return data.did;
+    } catch (error) {
+        throw new Error(`Failed to fetch issuer DID: ${error.message}`);
+    }
+}
+
 async function fetchHolderConnections() {
     try {
         const response = await fetch('/connections/verifier', {
@@ -46,6 +60,10 @@ async function sendProofRequest() {
     }
 
     try {
+        // Fetch issuer DID
+        const issuerDid = await fetchIssuerDid();
+        const schemaId = `${issuerDid}:2:Bang_tot_nghiep:1.0`;
+
         const response = await fetch('/graduated_presentation/verifier/send-request', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -57,21 +75,49 @@ async function sendProofRequest() {
                         name: "Graduation Verification",
                         version: "1.0",
                         requested_attributes: {
-                            "0_ho_ten_uuid": { "name": "ho_ten", },
-                            "0_chuyen_nganh_uuid": { "name": "chuyen_nganh" },
-                            "0_mssv_uuid": { "name": "mssv" },
-                            "0_loai_bang_uuid": { "name": "loai_bang" },
-                            "0_truong_uuid": { "name": "truong" },
-                            "0_gpa_uuid": { "name": "gpa" },
-                            "0_ngay_tot_nghiep_uuid": { "name": "ngay_tot_nghiep" },
-                            "0_ngay_sinh_uuid": { "name": "ngay_sinh" },
-                            "0_unixdob_uuid": { "name": "unixdob" }
+                            "0_ho_ten_uuid": {
+                                "name": "ho_ten",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_chuyen_nganh_uuid": {
+                                "name": "chuyen_nganh",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_mssv_uuid": {
+                                "name": "mssv",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_loai_bang_uuid": {
+                                "name": "loai_bang",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_truong_uuid": {
+                                "name": "truong",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_gpa_uuid": {
+                                "name": "gpa",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_ngay_tot_nghiep_uuid": {
+                                "name": "ngay_tot_nghiep",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_ngay_sinh_uuid": {
+                                "name": "ngay_sinh",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            },
+                            "0_unixdob_uuid": {
+                                "name": "unixdob",
+                                "restrictions": [{ "schema_id": schemaId }]
+                            }
                         },
                         requested_predicates: {
                             "0_trang_thai_tot_nghiep_uuid": {
                                 "name": "trang_thai_tot_nghiep",
                                 "p_type": ">=",
-                                "p_value": 1
+                                "p_value": 1,
+                                "restrictions": [{ "schema_id": schemaId }]
                             }
                         },
                         non_revoked: {
@@ -91,10 +137,10 @@ async function sendProofRequest() {
         threadId = data.thread_id;
 
         if (credentials.length > 0) {
-            credentials.forEach(cred => {
+            credentials.forEach(credential => {
                 const option = document.createElement('option');
-                option.value = cred.cred_info.referent;
-                option.textContent = `${cred.cred_info.attrs.ho_ten || 'Unknown'} - ${cred.cred_info.attrs.loai_bang || 'Unknown'} (${cred.cred_info.attrs.truong || 'Unknown'})`;
+                option.value = credential.cred_info.referent;
+                option.textContent = `${credential.cred_info.attrs.ho_ten || 'Unknown'} - ${credential.cred_info.attrs.loai_bang || 'Unknown'} (${credential.cred_info.attrs.truong || 'Unknown'})`;
                 credentialSelect.appendChild(option);
             });
         }
@@ -122,13 +168,15 @@ function displayCredentialDetails(referent) {
     const attrs = cred.cred_info.attrs;
     credentialDetails.innerHTML = `
         <div class="border p-4 rounded shadow">
-            <h3 class="text-lg font-bold mb-2">Credential Details</h3>
+            <div class="border-b mb-4">
+                <h3 class="text-lg font-bold">Credential Details</h3>
+            </div>
             <div class="attribute mb-2">
-                <span>Họ tên: ${attrs.ho_ten || 'N/A'}</span>
+                <span>Name: ${attrs.ho_ten || 'N/A'}</span>
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="ho_ten">Reveal</button>
             </div>
             <div class="attribute mb-2">
-                <span>Chuyên ngành: ${attrs.chuyen_nganh || 'N/A'}</span>
+                <span>Chuyen Nghanh: ${attrs.chuyen_nganh || 'N/A'}</span>
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="chuyen_nganh">Reveal</button>
             </div>
             <div class="attribute mb-2">
@@ -136,11 +184,11 @@ function displayCredentialDetails(referent) {
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="mssv">Reveal</button>
             </div>
             <div class="attribute mb-2">
-                <span>Loại bằng: ${attrs.loai_bang || 'N/A'}</span>
-                <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="loai_bang">Reveal</button>
+                <span>Loai Bang: ${attrs.loai_bang || 'N/A'}</span>
+                <button class="reveal-btn ml-2 px-2 py-2 bg-blue-500 text-white rounded" data-attr="loai_bang">Reveal</button>
             </div>
             <div class="attribute mb-2">
-                <span>Trường: ${attrs.truong || 'N/A'}</span>
+                <span>Truong: ${attrs.truong || 'N/A'}</span>
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="truong">Reveal</button>
             </div>
             <div class="attribute mb-2">
@@ -148,20 +196,12 @@ function displayCredentialDetails(referent) {
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="gpa">Reveal</button>
             </div>
             <div class="attribute mb-2">
-                <span>Ngày tốt nghiệp: ${attrs.ngay_tot_nghiep || 'N/A'}</span>
+                <span>Graduation Date: ${attrs.ngay_tot_nghiep || 'N/A'}</span>
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="ngay_tot_nghiep">Reveal</button>
             </div>
             <div class="attribute mb-2">
-                <span>Ngày sinh: ${attrs.ngay_sinh || 'N/A'}</span>
+                <span>Birth Date: ${attrs.ngay_sinh || 'N/A'}</span>
                 <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="ngay_sinh">Reveal</button>
-            </div>
-            <div class="attribute mb-2">
-                <span>Unix DOB: ${attrs.unixdob || 'N/A'}</span>
-                <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="unixdob">Reveal</button>
-            </div>
-            <div class="attribute mb-2">
-                <span>Trạng thái tốt nghiệp: ${attrs.trang_thai_tot_nghiep || 'N/A'}</span>
-                <button class="reveal-btn ml-2 px-2 py-1 bg-blue-500 text-white rounded" data-attr="trang_thai_tot_nghiep">Reveal</button>
             </div>
         </div>
     `;

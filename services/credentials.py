@@ -26,7 +26,7 @@ async def fetch_credentials() -> List[str]:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{settings.HOLDER_AGENT_URL}/credentials?count=100&start=0",
+                f"{settings.HOLDER_AGENT_URL}/credentials?count=400&start=0",
                 timeout=10.0
             )
             response.raise_for_status()
@@ -74,10 +74,6 @@ async def fetch_credentials_full() -> CredentialsResponse:
         )
 
 async def delete_credential(referent: str) -> bool:
-    """
-    Delete a single credential by referent ID.
-    Returns True if successful, False if failed.
-    """
     try:
         async with httpx.AsyncClient() as client:
             response = await client.delete(

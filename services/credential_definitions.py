@@ -10,6 +10,33 @@ class CredentialDefinition(BaseModel):
     credential_definition_id: str
     schema_id: Optional[str] = None
     tag: Optional[str] = None
+    
+class CreateCredDefRequest(BaseModel):
+    schema_id: str
+    support_revocation: bool = False
+    tag: Optional[str] = None
+
+class CreateCredDefResponse(BaseModel):
+    credential_definition_id: str
+
+
+async def create_credential_definition(cred_def: CreateCredDefRequest) -> CreateCredDefResponse:
+    url = f"{settings.ISSUER_AGENT_URL}/credential-definitions"
+    payload = cred_def.dict(exclude_none=True)
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Successfully created credential definition with ID: {data.get('credential_definition_id')}")
+            return CreateCredDefResponse(**data)
+    except httpx.RequestError as e:
+        logger.error(f"Request error while creating credential definition: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error while creating credential definition: {e}")
+        raise   
+
 
 async def fetch_credential_definition_id_list(agent_url: str) -> List[CredentialDefinition]:
     url = f"{agent_url}/credential-definitions/created"
@@ -43,9 +70,12 @@ async def fetch_all_issuer_credential_definition_details() -> List[Dict[str, Any
     cred_def_id_list = await fetch_issuer_credential_definition_id_list()
     cred_def_list_details = []
     for cred_def in cred_def_id_list:
-        detail = await fetch_credential_definition_details(settings.ISSUER_AGENT_URL, cred_def.credential_definition_id)
-        if detail:
-            cred_def_list_details.append(detail)
+        try:
+            detail = await fetch_credential_definition_details(settings.ISSUER_AGENT_URL, cred_def.credential_definition_id)
+            if detail and 'credential_definition' in detail:
+                cred_def_list_details.append(detail)
+        except Exception as e:
+            logger.error(f"Error fetching details for cred_def_id {cred_def.credential_definition_id}: {e}")
     return cred_def_list_details
 
 async def fetch_issuer_credential_definition_id_list():

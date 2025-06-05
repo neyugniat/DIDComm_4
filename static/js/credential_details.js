@@ -84,5 +84,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function deleteCredential() {
+        const referent = decodeURIComponent(window.location.pathname.split('/').pop());
+        const deleteBtn = document.getElementById('delete-credential-btn');
+
+        if (!deleteBtn) {
+            console.error('Delete button not found');
+            createToast('Internal error: Delete button not found', 'error');
+            return;
+        }
+
+        // Disable button to prevent multiple clicks
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+
+        try {
+            const response = await fetch(`/credentials/credential/${encodeURIComponent(referent)}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to delete credential: ${errorText || response.statusText}`);
+            }
+
+            const data = await response.json();
+            createToast(data.message || 'Credential deleted successfully', 'success');
+            // Redirect to homepage after a short delay to show toast
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } catch (error) {
+            console.error('Error deleting credential:', error);
+            createToast(`Failed to delete credential: ${error.message}`, 'error');
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete Credential';
+        }
+    }
+
+    // Add event listener for delete button
+    const deleteBtn = document.getElementById('delete-credential-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', deleteCredential);
+    }
+
     fetchCredentialDetails();
 });

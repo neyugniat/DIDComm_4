@@ -101,7 +101,7 @@ async def fetch_cred_ex_record(agent: str, cred_ex_id: str) -> Dict[str, Any]:
 
 
 async def fetch_cred_ex_id_list() -> Dict[str, Any]:
-    url = f"{settings.ISSUER_AGENT_URL}/issue-credential-2.0/records"
+    url = f"{settings.HOLDER_AGENT_URL}/issue-credential-2.0/records?count=400&start=0"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
@@ -118,7 +118,7 @@ async def fetch_cred_ex_id_list() -> Dict[str, Any]:
         raise
 
 async def delete_cred_ex_record(cred_ex_id: str) -> Dict[str, Any]:
-    url = f"{settings.ISSUER_AGENT_URL}/issue-credential-2.0/records/{cred_ex_id}"
+    url = f"{settings.HOLDER_AGENT_URL}/issue-credential-2.0/records/{cred_ex_id}"
     try:
         async with httpx.AsyncClient() as client:
             response = await client.delete(url)

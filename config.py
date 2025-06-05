@@ -14,12 +14,6 @@ class Settings(BaseSettings):
     
     REDIS_URL: str = "redis://localhost:6379/0"
     
-    WEBHOOK_TOPICS: list = [
-        "basicmessages",
-        "issue_credential_v2_0",
-        "present_proof_v2_0",
-        "connections"
-    ]
     
     class Config:
         env_file = ".env"

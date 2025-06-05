@@ -1,8 +1,9 @@
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException
 import logging
 
 import httpx
+from pydantic import BaseModel, Field
 from services.issue_credentials import (
     send_credential_proposal, 
     fetch_cred_ex_record,
@@ -80,45 +81,93 @@ async def get_holder_connection_id_for_issuer():
                 return conn["connection_id"]
         raise HTTPException(status_code=404, detail="No active connection found with issuer")
 
+
+class CredentialAttribute(BaseModel):
+    name: str
+    value: str
+
+class CredentialPreview(BaseModel):
+    type: str = Field("https://didcomm.org/issue-credential/2.0/credential-preview", alias="@type")
+    attributes: List[CredentialAttribute]
+
+class IndyFilter(BaseModel):
+    cred_def_id: str
+
+class Filter(BaseModel):
+    indy: IndyFilter
+
+class CredentialProposalRequest(BaseModel):
+    comment: Optional[str] = "Requesting credential issuance"
+    connection_id: str
+    credential_preview: CredentialPreview
+    filter: Filter
+    auto_remove: bool = False
+
 @router.post(
     "/proposal",
     summary="Send Credential Proposal",
     description="Send a credential proposal to the holder agent."
 )
-async def issue_credential_proposal(data: Dict[str, Any]):
+async def issue_credential_proposal(data: CredentialProposalRequest):
     try:
-        schema_id = data.get("schemaId")
-        cred_def_id = data.get("credDefId")
-        attributes = data.get("attributes", [])
-        if not schema_id or not cred_def_id or not attributes:
-            raise HTTPException(status_code=400, detail="Missing schemaId, credDefId, or attributes")
-
-        # Dynamically fetch the connection_id for the issuer
-        connection_id = await get_holder_connection_id_for_issuer()
-
+        # Construct proposal from request data
         proposal = {
-            "comment": "Requesting credential issuance",
-            "connection_id": connection_id,
-            "credential_preview": {
-                "@type": "https://didcomm.org/issue-credential/2.0/credential-preview",
-                "attributes": [{"name": attr["name"], "value": attr["value"]} for attr in attributes]
-            },
-            "filter": {
-                "indy": {
-                    "cred_def_id": cred_def_id
-                }
-            },
-            "auto_remove": False,
+            "comment": data.comment,
+            "connection_id": data.connection_id,
+            "credential_preview": data.credential_preview.dict(by_alias=True),
+            "filter": data.filter.dict(),
+            "auto_remove": data.auto_remove
         }
 
         result = await send_credential_proposal(proposal)
-        logger.info(f"Credential proposal sent for schema {schema_id} and cred_def {cred_def_id}")
+        logger.info(f"Credential proposal sent for cred_def_id {data.filter.indy.cred_def_id}")
         return {"status": "Proposal sent", "result": result}
     except HTTPException as e:
         raise e
     except Exception as e:
         logger.error(f"Error in /issue-credentials/proposal: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# @router.post(
+#     "/proposal",
+#     summary="Send Credential Proposal",
+#     description="Send a credential proposal to the holder agent."
+# )
+# async def issue_credential_proposal(data: Dict[str, Any]):
+#     try:
+#         schema_id = data.get("schemaId")
+#         cred_def_id = data.get("credDefId")
+#         attributes = data.get("attributes", [])
+#         if not schema_id or not cred_def_id or not attributes:
+#             raise HTTPException(status_code=400, detail="Missing schemaId, credDefId, or attributes")
+
+#         # Dynamically fetch the connection_id for the issuer
+#         connection_id = await get_holder_connection_id_for_issuer()
+
+#         proposal = {
+#             "comment": "Requesting credential issuance",
+#             "connection_id": connection_id,
+#             "credential_preview": {
+#                 "@type": "https://didcomm.org/issue-credential/2.0/credential-preview",
+#                 "attributes": [{"name": attr["name"], "value": attr["value"]} for attr in attributes]
+#             },
+#             "filter": {
+#                 "indy": {
+#                     "cred_def_id": cred_def_id
+#                 }
+#             },
+#             "auto_remove": False,
+#         }
+
+#         result = await send_credential_proposal(proposal)
+#         logger.info(f"Credential proposal sent for schema {schema_id} and cred_def {cred_def_id}")
+#         return {"status": "Proposal sent", "result": result}
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         logger.error(f"Error in /issue-credentials/proposal: {str(e)}")
+#         raise HTTPException(status_code=500, detail=str(e)) from e
 
     
 @router.get(

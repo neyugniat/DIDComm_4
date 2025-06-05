@@ -59,7 +59,7 @@ async def send_presentation_request_endpoint(request: Request):
                     "name": "Proof of Name",
                     "version": "1.0",
                     "requested_attributes": {
-                        "name_attr": {"name": "name"}
+                        "name_attr": {"name": "ten"}
                     },
                     "requested_predicates": {},
                     "non_revoked": {"from": 0, "to": int(time.time())}

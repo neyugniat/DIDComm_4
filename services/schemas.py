@@ -14,6 +14,24 @@ class CredentialDefinition(BaseModel):
     schema_id: str
     tag: Optional[str] = None
 
+class CreateSchemaRequest(BaseModel):
+    schema_name: str
+    schema_version: str
+    attributes: List[str]
+
+class SchemaDetails(BaseModel):
+    ver: str
+    id: str
+    name: str
+    version: str
+    attrNames: List[str]
+    seqNo: int
+
+class CreateSchemaResponse(BaseModel):
+    sent: Dict[str, Any]
+    schema_id: str
+    schema_details: SchemaDetails  
+
 async def fetch_schema_id_list(agent_url: str) -> List[Schema]:
     url = f"{agent_url}/schemas/created"
     try:
@@ -60,3 +78,21 @@ async def fetch_schema_details_by_id(schema_id: str) -> Optional[Dict[str, Any]]
     except Exception as e:
         logger.error(f"Error fetching schema details for {schema_id}: {e}")
         return None
+
+async def create_schema(schema: CreateSchemaRequest) -> CreateSchemaResponse:
+    url = f"{settings.ISSUER_AGENT_URL}/schemas"
+    payload = schema.dict()
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Successfully created schema with schema_id: {data.get('schema_id')}")
+            data['schema_details'] = data.pop('schema')
+            return CreateSchemaResponse(**data)
+    except httpx.RequestError as e:
+        logger.error(f"Request error while creating schema: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error while creating schema: {e}")
+        raise

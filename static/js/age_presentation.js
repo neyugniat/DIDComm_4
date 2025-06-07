@@ -40,15 +40,11 @@ async function fetchHolderConnections() {
 
 function calculateUnixDobInDays(yearsAgo) {
     const currentDate = new Date();
-
     const thresholdDate = new Date(currentDate);
     thresholdDate.setFullYear(currentDate.getFullYear() - yearsAgo);
-
     const msPerDay = 1000 * 60 * 60 * 24;
     const unixEpoch = new Date('1970-01-01T00:00:00Z');
-
     const daysSinceEpoch = Math.floor((thresholdDate - unixEpoch) / msPerDay);
-
     return daysSinceEpoch;
 }
 
@@ -76,10 +72,8 @@ async function sendProofRequest() {
     try {
         const issuerDid = await fetchIssuerDid();
         const schemaId = `${issuerDid}:2:Can_Cuoc_Cong_Dan:1.0`;
-
         const targetAge = 18;
         const unixDobValue = calculateUnixDobInDays(targetAge);
-        // console.log("unixDobValue: ", unixDobValue)
 
         const response = await fetch('/age_presentation/verifier/send-request', {
             method: 'POST',
@@ -92,42 +86,15 @@ async function sendProofRequest() {
                         name: "CCCD Verification",
                         version: "1.0",
                         requested_attributes: {
-                            "0_ho_ten_uuid": {
-                                "name": "ho_ten",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_gioi_tinh_uuid": {
-                                "name": "gioi_tinh",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_noi_cap_uuid": {
-                                "name": "noi_cap",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_noi_thuong_tru_uuid": {
-                                "name": "noi_thuong_tru",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_so_cccd_uuid": {
-                                "name": "so_cccd",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_que_quan_uuid": {
-                                "name": "que_quan",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_ngay_cap_uuid": {
-                                "name": "ngay_cap",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_ngay_sinh_uuid": {
-                                "name": "ngay_sinh",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_quoc_tich_uuid": {
-                                "name": "quoc_tich",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            }
+                            "0_ho_ten_uuid": { "name": "ho_ten", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_gioi_tinh_uuid": { "name": "gioi_tinh", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_noi_cap_uuid": { "name": "noi_cap", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_noi_thuong_tru_uuid": { "name": "noi_thuong_tru", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_so_cccd_uuid": { "name": "so_cccd", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_que_quan_uuid": { "name": "que_quan", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_ngay_cap_uuid": { "name": "ngay_cap", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_ngay_sinh_uuid": { "name": "ngay_sinh", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_quoc_tich_uuid": { "name": "quoc_tich", "restrictions": [{ "schema_id": schemaId }] }
                         },
                         requested_predicates: {
                             "0_age_GT_uuid": {
@@ -158,6 +125,8 @@ async function sendProofRequest() {
                 credentialSelect.appendChild(option);
             });
         }
+        toastMessage.classList.add('toast-success'); // Green for success
+        toastMessage.classList.remove('toast-error');
         toastMessage.textContent = 'Proof request sent successfully!';
         toastMessage.classList.remove('hidden');
         setTimeout(() => toastMessage.classList.add('hidden'), 5000);
@@ -300,13 +269,15 @@ async function sendPresentation() {
         }
 
         const data = await response.json();
+        toastMessage.classList.add('toast-success'); // Green for success
+        toastMessage.classList.remove('toast-error');
         toastMessage.textContent = 'Presentation sent successfully! Awaiting verification...';
         toastMessage.classList.remove('hidden');
 
         // Poll for verification status
         let attempts = 0;
         const maxAttempts = 10;
-        const pollInterval = 1000; // 1 second
+        const pollInterval = 1000;
 
         while (attempts < maxAttempts) {
             try {
@@ -319,27 +290,43 @@ async function sendPresentation() {
                 }
                 const verifyData = await verifyResponse.json();
                 if (verifyData.verified === "true") {
+                    toastMessage.classList.add('toast-success');
+                    toastMessage.classList.remove('toast-error');
                     toastMessage.textContent = 'Credential Verified!';
                     toastMessage.classList.remove('hidden');
                     setTimeout(() => toastMessage.classList.add('hidden'), 5000);
                     return;
                 } else if (verifyData.verified === "false" || verifyData.state === "abandoned" || verifyData.state === "deleted") {
-                    throw new Error(verifyData.error || 'Verification failed: Credential is revoked or invalid');
+                    toastMessage.classList.add('toast-error'); // Red for failure
+                    toastMessage.classList.remove('toast-success');
+                    toastMessage.textContent = 'Verification failed: ' + (verifyData.error || 'Credential is revoked or invalid');
+                    toastMessage.classList.remove('hidden');
+                    setTimeout(() => toastMessage.classList.add('hidden'), 5000);
+                    return;
                 }
             } catch (verifyError) {
-                errorMessage.textContent = verifyError.message;
-                errorMessage.classList.remove('hidden');
+                toastMessage.classList.add('toast-error'); // Red for error
+                toastMessage.classList.remove('toast-success');
+                toastMessage.textContent = 'Verification error: ' + verifyError.message;
+                toastMessage.classList.remove('hidden');
+                setTimeout(() => toastMessage.classList.add('hidden'), 5000);
                 return;
             }
             attempts++;
             await new Promise(resolve => setTimeout(resolve, pollInterval));
         }
 
-        errorMessage.textContent = 'Verification timed out. Please try again.';
-        errorMessage.classList.remove('hidden');
+        toastMessage.classList.add('toast-error'); // Red for timeout
+        toastMessage.classList.remove('toast-success');
+        toastMessage.textContent = 'Verification timed out. Please try again.';
+        toastMessage.classList.remove('hidden');
+        setTimeout(() => toastMessage.classList.add('hidden'), 5000);
     } catch (error) {
-        errorMessage.textContent = `Error sending presentation: ${error.message}`;
-        errorMessage.classList.remove('hidden');
+        toastMessage.classList.add('toast-error'); // Red for error
+        toastMessage.classList.remove('toast-success');
+        toastMessage.textContent = `Error sending presentation: ${error.message}`;
+        toastMessage.classList.remove('hidden');
+        setTimeout(() => toastMessage.classList.add('hidden'), 5000);
     }
 }
 

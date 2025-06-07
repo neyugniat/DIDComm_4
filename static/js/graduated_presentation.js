@@ -60,7 +60,6 @@ async function sendProofRequest() {
     }
 
     try {
-        // Fetch issuer DID
         const issuerDid = await fetchIssuerDid();
         const schemaId = `${issuerDid}:2:Bang_tot_nghiep:1.0`;
 
@@ -75,42 +74,15 @@ async function sendProofRequest() {
                         name: "Graduation Verification",
                         version: "1.0",
                         requested_attributes: {
-                            "0_ho_ten_uuid": {
-                                "name": "ho_ten",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_chuyen_nganh_uuid": {
-                                "name": "chuyen_nganh",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_mssv_uuid": {
-                                "name": "mssv",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_loai_bang_uuid": {
-                                "name": "loai_bang",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_truong_uuid": {
-                                "name": "truong",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_gpa_uuid": {
-                                "name": "gpa",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_ngay_tot_nghiep_uuid": {
-                                "name": "ngay_tot_nghiep",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_ngay_sinh_uuid": {
-                                "name": "ngay_sinh",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            },
-                            "0_unixdob_uuid": {
-                                "name": "unixdob",
-                                "restrictions": [{ "schema_id": schemaId }]
-                            }
+                            "0_ho_ten_uuid": { "name": "ho_ten", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_chuyen_nganh_uuid": { "name": "chuyen_nganh", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_mssv_uuid": { "name": "mssv", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_loai_bang_uuid": { "name": "loai_bang", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_truong_uuid": { "name": "truong", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_gpa_uuid": { "name": "gpa", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_ngay_tot_nghiep_uuid": { "name": "ngay_tot_nghiep", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_ngay_sinh_uuid": { "name": "ngay_sinh", "restrictions": [{ "schema_id": schemaId }] },
+                            "0_unixdob_uuid": { "name": "unixdob", "restrictions": [{ "schema_id": schemaId }] }
                         },
                         requested_predicates: {
                             "0_trang_thai_tot_nghiep_uuid": {
@@ -120,10 +92,7 @@ async function sendProofRequest() {
                                 "restrictions": [{ "schema_id": schemaId }]
                             }
                         },
-                        non_revoked: {
-                            from: 0,
-                            to: Math.floor(Date.now() / 1000)
-                        }
+                        non_revoked: { from: 0, to: Math.floor(Date.now() / 1000) }
                     }
                 },
                 auto_remove: false
@@ -144,6 +113,8 @@ async function sendProofRequest() {
                 credentialSelect.appendChild(option);
             });
         }
+        toastMessage.classList.add('toast-success');
+        toastMessage.classList.remove('toast-error');
         toastMessage.textContent = 'Proof request sent successfully!';
         toastMessage.classList.remove('hidden');
         setTimeout(() => toastMessage.classList.add('hidden'), 5000);
@@ -284,13 +255,15 @@ async function sendPresentation() {
         }
 
         const data = await response.json();
+        toastMessage.classList.add('toast-success');
+        toastMessage.classList.remove('toast-error');
         toastMessage.textContent = 'Presentation sent successfully! Awaiting verification...';
         toastMessage.classList.remove('hidden');
 
         // Poll for verification status
         let attempts = 0;
         const maxAttempts = 10;
-        const pollInterval = 1000; // 1 second
+        const pollInterval = 1000;
 
         while (attempts < maxAttempts) {
             try {
@@ -298,28 +271,53 @@ async function sendPresentation() {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
+                if (verifyResponse.status === 425) {
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, pollInterval));
+                    continue;
+                }
                 if (!verifyResponse.ok) {
                     throw new Error(`HTTP error! Status: ${verifyResponse.status}`);
                 }
                 const verifyData = await verifyResponse.json();
                 if (verifyData.status === 'verified') {
+                    toastMessage.classList.add('toast-success');
+                    toastMessage.classList.remove('toast-error');
                     toastMessage.textContent = 'Credential Verified!';
+                    toastMessage.classList.remove('hidden');
+                    setTimeout(() => toastMessage.classList.add('hidden'), 5000);
+                    return;
+                } else if (verifyData.status === 'failed' || verifyData.state === 'abandoned' || verifyData.state === 'deleted') {
+                    toastMessage.classList.add('toast-error');
+                    toastMessage.classList.remove('toast-success');
+                    toastMessage.textContent = 'Verification failed: ' + (verifyData.error || 'Credential is revoked or invalid');
                     toastMessage.classList.remove('hidden');
                     setTimeout(() => toastMessage.classList.add('hidden'), 5000);
                     return;
                 }
             } catch (verifyError) {
-                console.error('Verification check error:', verifyError.message);
+                toastMessage.classList.add('toast-error');
+                toastMessage.classList.remove('toast-success');
+                toastMessage.textContent = 'Verification error: ' + verifyError.message;
+                toastMessage.classList.remove('hidden');
+                setTimeout(() => toastMessage.classList.add('hidden'), 5000);
+                return;
             }
             attempts++;
             await new Promise(resolve => setTimeout(resolve, pollInterval));
         }
 
-        errorMessage.textContent = 'Verification timed out. Please try again.';
-        errorMessage.classList.remove('hidden');
+        toastMessage.classList.add('toast-error');
+        toastMessage.classList.remove('toast-success');
+        toastMessage.textContent = 'Verification timed out. Please try again.';
+        toastMessage.classList.remove('hidden');
+        setTimeout(() => toastMessage.classList.add('hidden'), 5000);
     } catch (error) {
-        errorMessage.textContent = `Error sending presentation: ${error.message}`;
-        errorMessage.classList.remove('hidden');
+        toastMessage.classList.add('toast-error');
+        toastMessage.classList.remove('toast-success');
+        toastMessage.textContent = `Error sending presentation: ${error.message}`;
+        toastMessage.classList.remove('hidden');
+        setTimeout(() => toastMessage.classList.add('hidden'), 5000);
     }
 }
 

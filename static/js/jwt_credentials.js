@@ -25,42 +25,42 @@ async function issueCredential() {
         console.log("Issuer DID: ", issuerDid)
 
         // Step 2: Sign VC-JWT
-        const payload = {
-            iss: `did:sov:${issuerDid}`,
-            sub: did,
-            vc: {
-                '@context': ['https://www.w3.org/2018/credentials/v1'],
-                type: ['VerifiableCredential', 'UniversityDegreeCredential'],
-                credentialSubject: {
-                    id: did,
-                    name: 'Nguyễn Tài Nguyên',
-                    degree: 'Bachelor of Information Security',
-                    status: 'graduated',
-                    graduationDate: '2025-07-16'
-                }
-            },
-            exp: Math.floor(Date.now() / 1000) + 3600,
-            iat: Math.floor(Date.now() / 1000)
-        };
-
         // const payload = {
         //     iss: `did:sov:${issuerDid}`,
         //     sub: did,
         //     vc: {
         //         '@context': ['https://www.w3.org/2018/credentials/v1'],
-        //         type: ['VerifiableCredential', 'DoctorCredential'],
+        //         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
         //         credentialSubject: {
         //             id: did,
-        //             ho_ten: 'Trần Thị B',
-        //             chuc_vu: "Bác sĩ",
-        //             chuyen_khoa: 'Tim mạch',
-        //             benh_vien: 'Bệnh viện A',
-        //             licenseNumber: 'VN-MOH-2025-123456'
+        //             name: 'Nguyễn Tài Nguyên',
+        //             degree: 'Bachelor of Information Security',
+        //             status: 'graduated',
+        //             graduationDate: '2025-07-16'
         //         }
         //     },
         //     exp: Math.floor(Date.now() / 1000) + 3600,
         //     iat: Math.floor(Date.now() / 1000)
         // };
+
+        const payload = {
+            iss: `did:sov:${issuerDid}`,
+            sub: did,
+            vc: {
+                '@context': ['https://www.w3.org/2018/credentials/v1'],
+                type: ['VerifiableCredential', 'DoctorCredential'],
+                credentialSubject: {
+                    id: did,
+                    ho_ten: 'Trần Thị B',
+                    chuc_vu: "Bác sĩ",
+                    chuyen_khoa: 'Tim mạch',
+                    benh_vien: 'Bệnh viện A',
+                    licenseNumber: 'VN-MOH-2025-123456'
+                }
+            },
+            exp: Math.floor(Date.now() / 1000) + 3600,
+            iat: Math.floor(Date.now() / 1000)
+        };
 
         const vcResponse = await fetch('/jwt-credentials/sign-vc-jwt', {
             method: 'POST',

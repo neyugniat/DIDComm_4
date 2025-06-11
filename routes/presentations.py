@@ -47,7 +47,6 @@ async def get_verifier_connection_id_for_holder():
 )
 async def send_presentation_request_endpoint(request: Request):
     try:
-        # Dynamically fetch the connection_id
         connection_id = await get_verifier_connection_id_for_holder()
         
         # Use the fetched connection_id in the proof_request
@@ -59,7 +58,7 @@ async def send_presentation_request_endpoint(request: Request):
                     "name": "Proof of Name",
                     "version": "1.0",
                     "requested_attributes": {
-                        "name_attr": {"name": "ten"}
+                        "name_attr": {"name": "ho_ten"}
                     },
                     "requested_predicates": {},
                     "non_revoked": {"from": 0, "to": int(time.time())}

@@ -20,7 +20,7 @@ const defaultValues = {
       chuyen_nganh: "ATTT",
       ngay_sinh: "2003-07-16",
       truong: "HVKTMM",
-      unixdob: "12243",
+      ngay_sinh_int: "20030716",
       ho_ten: "Nguyễn Văn A",
       loai_bang: "Bằng cử nhân"
     }
@@ -36,7 +36,7 @@ const defaultValues = {
       noi_thuong_tru: "123 Cộng Hoà, Tân Bình",
       ngay_cap: "2025-06-02",
       noi_cap: "Cục Cảnh sát DKQL Cư trú",
-      unixdob: "11000"
+      ngay_sinh_int: "19950420"
     }
   }
 };

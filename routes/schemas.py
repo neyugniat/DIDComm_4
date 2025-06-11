@@ -45,7 +45,7 @@ async def create_can_cuoc_cong_dan_schema():
             schema_version="1.0",
             attributes=[
                 "so_cccd", "ho_ten", "ngay_sinh", "gioi_tinh", "quoc_tich",
-                "que_quan", "noi_thuong_tru", "ngay_cap", "noi_cap", "unixdob"
+                "que_quan", "noi_thuong_tru", "ngay_cap", "noi_cap", "ngay_sinh_int"
             ]
         )
         result = await create_schema(schema_data)
@@ -62,7 +62,7 @@ async def create_bang_tot_nghiep_schema():
             schema_name="Bang_tot_nghiep",
             schema_version="1.0",
             attributes=[
-                "unixdob", "ho_ten", "loai_bang", "ngay_sinh", "ngay_tot_nghiep",
+                "ngay_sinh_int", "ho_ten", "loai_bang", "ngay_sinh", "ngay_tot_nghiep",
                 "mssv", "truong", "chuyen_nganh", "gpa", "trang_thai_tot_nghiep"
             ]
         )

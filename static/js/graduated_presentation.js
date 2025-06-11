@@ -82,7 +82,6 @@ async function sendProofRequest() {
                             "0_gpa_uuid": { "name": "gpa", "restrictions": [{ "schema_id": schemaId }] },
                             "0_ngay_tot_nghiep_uuid": { "name": "ngay_tot_nghiep", "restrictions": [{ "schema_id": schemaId }] },
                             "0_ngay_sinh_uuid": { "name": "ngay_sinh", "restrictions": [{ "schema_id": schemaId }] },
-                            "0_unixdob_uuid": { "name": "unixdob", "restrictions": [{ "schema_id": schemaId }] }
                         },
                         requested_predicates: {
                             "0_trang_thai_tot_nghiep_uuid": {
@@ -220,8 +219,7 @@ async function sendPresentation() {
         'truong',
         'gpa',
         'ngay_tot_nghiep',
-        'ngay_sinh',
-        'unixdob'
+        'ngay_sinh'
     ];
     const requestedAttributes = {};
     allAttributes.forEach(attr => {

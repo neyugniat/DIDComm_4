@@ -149,6 +149,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (issueButton) issueButton.classList.remove('hidden');
     }
 
+    async function getConnectionId() {
+        try {
+            const response = await fetch('/connections/holder');
+            if (!response.ok) throw new Error(`Failed to fetch connections: ${response.statusText}`);
+            const data = await response.json();
+            const connections = data.results || [];
+            const issuerConnection = connections.find(conn => conn.their_label === 'ISSUER' && conn.state === 'active');
+            if (!issuerConnection) throw new Error('No active connection found with issuer');
+            return issuerConnection.connection_id;
+        } catch (error) {
+            console.error('Error fetching connection ID:', error);
+            throw new Error(`Failed to get connection ID: ${error.message}`);
+        }
+    }
+
     async function pollCredentialState(cred_ex_id) {
         const maxAttempts = 30;
         const intervalMs = 1000;
@@ -177,12 +192,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function requestCredentialIssuance(schemaId, credDefId, attributes) {
         try {
+            const connectionId = await getConnectionId();
+            const proposal = {
+                connection_id: connectionId,
+                comment: 'Requesting credential issuance',
+                credential_preview: {
+                    '@type': 'https://didcomm.org/issue-credential/2.0/credential-preview',
+                    attributes: attributes
+                },
+                filter: {
+                    indy: {
+                        cred_def_id: credDefId
+                    }
+                },
+                auto_remove: false
+            };
+
             const response = await fetch('/issue-credentials/proposal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ schemaId, credDefId, attributes })
+                body: JSON.stringify(proposal)
             });
-            if (!response.ok) throw new Error(`Failed to send proposal: ${response.statusText}`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Failed to send proposal: ${JSON.stringify(errorData.detail)}`);
+            }
             const result = await response.json();
             const cred_ex_id = result.result.cred_ex_id;
             if (!cred_ex_id) throw new Error('No cred_ex_id in proposal response');

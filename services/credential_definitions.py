@@ -23,19 +23,30 @@ class CreateCredDefResponse(BaseModel):
 async def create_credential_definition(cred_def: CreateCredDefRequest) -> CreateCredDefResponse:
     url = f"{settings.ISSUER_AGENT_URL}/credential-definitions"
     payload = cred_def.dict(exclude_none=True)
+    logger.info(f"Sending payload to {url}: {payload}")
     try:
-        async with httpx.AsyncClient() as client:
+        # Set a higher timeout (e.g., 30 seconds) to handle slow responses
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(url, json=payload)
+            logger.info(f"Response status: {response.status_code}")
+            logger.info(f"Response body: {response.text}")
             response.raise_for_status()
             data = response.json()
-            logger.info(f"Successfully created credential definition with ID: {data.get('credential_definition_id')}")
-            return CreateCredDefResponse(**data)
+            # Extract credential_definition_id from the response
+            credential_definition_id = data.get("credential_definition_id") or data.get("sent", {}).get("credential_definition_id")
+            if not credential_definition_id:
+                raise ValueError("credential_definition_id not found in response")
+            logger.info(f"Successfully created credential definition with ID: {credential_definition_id}")
+            return CreateCredDefResponse(credential_definition_id=credential_definition_id)
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error while creating credential definition: {e}, Status: {e.response.status_code}, Body: {e.response.text}")
+        raise
     except httpx.RequestError as e:
-        logger.error(f"Request error while creating credential definition: {e}")
+        logger.error(f"Request error while creating credential definition: {type(e).__name__}: {str(e)}")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error while creating credential definition: {e}")
-        raise   
+        logger.error(f"Unexpected error while creating credential definition: {type(e).__name__}: {str(e)}")
+        raise
 
 
 async def fetch_credential_definition_id_list(agent_url: str) -> List[CredentialDefinition]:

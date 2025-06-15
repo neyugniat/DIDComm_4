@@ -315,6 +315,7 @@ async function sendPresentation() {
         toastMessage.classList.remove('toast-success');
         toastMessage.textContent = `Error sending presentation: ${error.message}`;
         toastMessage.classList.remove('hidden');
+        document.getElementById('error-message').classList.remove('hidden');
         setTimeout(() => toastMessage.classList.add('hidden'), 5000);
     }
 }

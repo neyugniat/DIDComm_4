@@ -50,10 +50,38 @@ function createToast(message, type) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// Endpoint configurations
+const endpointConfigs = {
+    'book-list': {
+        endpoint: '/api/get-book-list',
+        vpJwtInputId: 'vp-jwt',
+        resultDivId: 'api-result',
+        successMessage: 'Book list retrieved successfully'
+    },
+    'patient-records': {
+        endpoint: '/api/get-patient-records',
+        vpJwtInputId: 'vp-jwt',
+        resultDivId: 'api-result',
+        successMessage: 'Patient records retrieved successfully'
+    }
+};
+
 // Event listeners
-document.getElementById('test-api').addEventListener('click', () => 
-    testApi('/api/get-book-list', 'vp-jwt', 'api-result', 'Book list retrieved successfully')
-);
-document.getElementById('test-patient-api').addEventListener('click', () => 
-    testApi('/api/get-patient-records', 'patient-vp-jwt', 'patient-api-result', 'Patient records retrieved successfully')
-);
+document.getElementById('endpoint-select').addEventListener('change', () => {
+    const endpointKey = document.getElementById('endpoint-select').value;
+    const testButton = document.getElementById('test-api');
+    testButton.disabled = !endpointKey;
+    if (!endpointKey) {
+        document.getElementById('api-result').classList.add('hidden');
+    }
+});
+
+document.getElementById('test-api').addEventListener('click', () => {
+    const endpointKey = document.getElementById('endpoint-select').value;
+    if (!endpointKey) {
+        createToast('Please select an endpoint', 'error');
+        return;
+    }
+    const config = endpointConfigs[endpointKey];
+    testApi(config.endpoint, config.vpJwtInputId, config.resultDivId, config.successMessage);
+});

@@ -1,0 +1,28 @@
+import http from 'k6/http';
+import { check } from 'k6';
+
+export let options = {
+  vus: 16,
+  duration: '60s',
+};
+
+export default function () {
+  const url = 'http://localhost:5000/jwt-credentials/verify-jwt';
+
+  const payload = JSON.stringify({
+    jwt: "eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJFZERTQSIsICJraWQiOiAiZGlkOmtleTp6Nk1rd2VBRVRtSGlmWlhCUFlDbmlZNlE3RTFxdzNVQXpFd1QzMkxBTThRdWNCbmojejZNa3dlQUVUbUhpZlpYQlBZQ25pWTZRN0UxcXczVUF6RXdUMzJMQU04UXVjQm5qIn0.eyJpc3MiOiAiZGlkOmtleTp6Nk1rd2VBRVRtSGlmWlhCUFlDbmlZNlE3RTFxdzNVQXpFd1QzMkxBTThRdWNCbmoiLCAiYXVkIjogImRpZDpzb3Y6RjducWVYUXlYU2VmVU5HUzg4VVNFZCIsICJ2cCI6IHsiY29udGV4dCI6IFsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwgInR5cGUiOiBbIlZlcmlmaWFibGVQcmVzZW50YXRpb24iXSwgInZlcmlmaWFibGVDcmVkZW50aWFsIjogWyJleUowZVhBaU9pQWlTbGRVSWl3Z0ltRnNaeUk2SUNKRlpFUlRRU0lzSUNKcmFXUWlPaUFpWkdsa09uTnZkanBHZEZScVJuZG9VMmM1Wm05M2IydE9hR1paWmxkV0kydGxlUzB4SW4wLmV5SnBjM01pT2lBaVpHbGtPbk52ZGpwR2RGUnFSbmRvVTJjNVptOTNiMnRPYUdaWlpsZFdJaXdnSW5OMVlpSTZJQ0prYVdRNmEyVjVPbm8yVFd0bmNUZEtZamt6T0RSWGQwUldOMmhXZVV0TlpYSlRTbTQyTkV0SGExTnVhbVpDYzBvM2NUVXlXa2hwVFNJc0lDSjJZeUk2SUhzaVkyOXVkR1Y0ZENJNklGc2lhSFIwY0hNNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TVRndlkzSmxaR1Z1ZEdsaGJITXZkakVpWFN3Z0luUjVjR1VpT2lCYklsWmxjbWxtYVdGaWJHVkRjbVZrWlc1MGFXRnNJaXdnSWxWdWFYWmxjbk5wZEhsRVpXZHlaV1ZEY21Wa1pXNTBhV0ZzSWwwc0lDSmpjbVZrWlc1MGFXRnNVM1ZpYW1WamRDSTZJSHNpYVdRaU9pQWlaR2xrT210bGVUcDZOazFyWjNFM1NtSTVNemcwVjNkRVZqZG9WbmxMVFdWeVUwcHVOalJMUjJ0VGJtcG1Rbk5LTjNFMU1scElhVTBpTENBaWJtRnRaU0k2SUNKT1ozVjVYSFV4WldNMWJpQlVYSFV3TUdVd2FTQk9aM1Y1WEhVd01HVmhiaUlzSUNKa1pXZHlaV1VpT2lBaVFtRmphR1ZzYjNJZ2IyWWdTVzVtYjNKdFlYUnBiMjRnVTJWamRYSnBkSGtpTENBaWMzUmhkSFZ6SWpvZ0ltZHlZV1IxWVhSbFpDSXNJQ0puY21Ga2RXRjBhVzl1UkdGMFpTSTZJQ0l5TURJMUxUQTNMVEUySW4xOUxDQWlaWGh3SWpvZ01UYzBPVEF5T1RZME9Dd2dJbWxoZENJNklERTNORGt3TWpZd05EaDkuN2dWYzI4QzNQNFJDX3VmRHU5WVYzSjhWVUYzTDRLWGJoVG1OaWhtbmZoTVZiZXR2cFhiOWhWY05iWFkwS2FDWUY4R1JOeC1SdTAxaGdNcHRJckEtQlEiXX0sICJleHAiOiAxNzQ5NjUxNzI4LCAiaWF0IjogMTc0OTU1MTcyOCwgImNuZiI6IHsiandrIjogeyJrdHkiOiAiT0tQIiwgImNydiI6ICJFZDI1NTE5IiwgIngiOiAiSkJ1QnNYM0hMMjJpSDNONjJ5OFpHOFRyN1VDS2FNaDZNMVJFV3JTdGd5MU0ifX19.dEr8Q2f3t7lhuDbOZAwUDHvAmgKul8px4cIutqgSE-j3VjqNbxbcptbwUMRS2Vw1vE26l8s2HhG0cIBua8SeAg"
+  });
+
+  const params = {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  let res = http.post(url, payload, params);
+
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response is not empty': (r) => r.body && r.body.length > 0,
+  });
+}

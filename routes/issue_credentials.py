@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 import logging
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from services.issue_credentials import (
     send_credential_proposal, 
     fetch_cred_ex_record,
@@ -12,12 +12,11 @@ from services.issue_credentials import (
     fetch_cred_ex_id_list,
     delete_cred_ex_record,
     delete_all_cred_ex_records,
+    CredentialProposalRequest
 )
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-
 
 @router.post(
     "/send_credential",
@@ -51,7 +50,6 @@ async def delete_credential_exchange_record(cred_ex_id: str):
         logger.error(f"Error deleting credential exchange record {cred_ex_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-
 @router.delete(
     "/delete_all_cred_ex_records",
     summary="Delete All Credential Exchange Records",
@@ -67,42 +65,6 @@ async def delete_all_credential_exchange_records():
         logger.error(f"Error deleting all credential exchange records: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-
-
-
-async def get_holder_connection_id_for_issuer():
-    async with httpx.AsyncClient() as client:
-        response = await client.get("http://localhost:5000/connections/holder")
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="Failed to fetch connections from holder")
-        connections = response.json().get("results", [])
-        for conn in connections:
-            if conn.get("their_label") == "ISSUER" and conn.get("state") == "active":
-                return conn["connection_id"]
-        raise HTTPException(status_code=404, detail="No active connection found with issuer")
-
-
-class CredentialAttribute(BaseModel):
-    name: str
-    value: str
-
-class CredentialPreview(BaseModel):
-    type: str = Field("https://didcomm.org/issue-credential/2.0/credential-preview", alias="@type")
-    attributes: List[CredentialAttribute]
-
-class IndyFilter(BaseModel):
-    cred_def_id: str
-
-class Filter(BaseModel):
-    indy: IndyFilter
-
-class CredentialProposalRequest(BaseModel):
-    comment: Optional[str] = "Requesting credential issuance"
-    connection_id: str
-    credential_preview: CredentialPreview
-    filter: Filter
-    auto_remove: bool = False
-
 @router.post(
     "/proposal",
     summary="Send Credential Proposal",
@@ -110,6 +72,8 @@ class CredentialProposalRequest(BaseModel):
 )
 async def issue_credential_proposal(data: CredentialProposalRequest):
     try:
+        # Log the incoming request for debugging
+        logger.debug(f"Received credential proposal request: {data.dict(by_alias=True)}")
         # Construct proposal from request data
         proposal = {
             "comment": data.comment,
@@ -122,54 +86,15 @@ async def issue_credential_proposal(data: CredentialProposalRequest):
         result = await send_credential_proposal(proposal)
         logger.info(f"Credential proposal sent for cred_def_id {data.filter.indy.cred_def_id}")
         return {"status": "Proposal sent", "result": result}
+    except ValidationError as e:
+        logger.error(f"Validation error in /issue-credentials/proposal: {e.json()}")
+        raise HTTPException(status_code=422, detail=e.errors())
     except HTTPException as e:
         raise e
     except Exception as e:
         logger.error(f"Error in /issue-credentials/proposal: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-
-# @router.post(
-#     "/proposal",
-#     summary="Send Credential Proposal",
-#     description="Send a credential proposal to the holder agent."
-# )
-# async def issue_credential_proposal(data: Dict[str, Any]):
-#     try:
-#         schema_id = data.get("schemaId")
-#         cred_def_id = data.get("credDefId")
-#         attributes = data.get("attributes", [])
-#         if not schema_id or not cred_def_id or not attributes:
-#             raise HTTPException(status_code=400, detail="Missing schemaId, credDefId, or attributes")
-
-#         # Dynamically fetch the connection_id for the issuer
-#         connection_id = await get_holder_connection_id_for_issuer()
-
-#         proposal = {
-#             "comment": "Requesting credential issuance",
-#             "connection_id": connection_id,
-#             "credential_preview": {
-#                 "@type": "https://didcomm.org/issue-credential/2.0/credential-preview",
-#                 "attributes": [{"name": attr["name"], "value": attr["value"]} for attr in attributes]
-#             },
-#             "filter": {
-#                 "indy": {
-#                     "cred_def_id": cred_def_id
-#                 }
-#             },
-#             "auto_remove": False,
-#         }
-
-#         result = await send_credential_proposal(proposal)
-#         logger.info(f"Credential proposal sent for schema {schema_id} and cred_def {cred_def_id}")
-#         return {"status": "Proposal sent", "result": result}
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         logger.error(f"Error in /issue-credentials/proposal: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e)) from e
-
-    
 @router.get(
     "/fetch_record/{agent}/{cred_ex_id}",
     summary="Fetch Credential Exchange Record",

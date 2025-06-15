@@ -75,6 +75,11 @@ async def get_connections():
     with open("static/credential_definitions.html") as f:
         return HTMLResponse(content=f.read())  
     
+@app.get("/revocation", response_class=HTMLResponse)
+async def get_connections():
+    with open("static/revocation.html") as f:
+        return HTMLResponse(content=f.read())  
+
 @app.get("/verifier_connecting", response_class=HTMLResponse)
 async def get_connections():
     with open("static/verifier_connecting.html") as f:

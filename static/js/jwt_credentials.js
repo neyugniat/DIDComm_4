@@ -24,30 +24,19 @@ async function issueCredential() {
         const issuerDid = issuerData.did;
         console.log("Issuer DID: ", issuerDid)
 
-        // Step 2: Sign VC-JWT
-        // const payload = {
-        //     iss: `did:sov:${issuerDid}`,
-        //     sub: did,
-        //     vc: {
-        //         '@context': ['https://www.w3.org/2018/credentials/v1'],
-        //         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
-        //         credentialSubject: {
-        //             id: did,
-        //             name: 'Nguyễn Tài Nguyên',
-        //             degree: 'Bachelor of Information Security',
-        //             status: 'graduated',
-        //             graduationDate: '2025-07-16'
-        //         }
-        //     },
-        //     exp: Math.floor(Date.now() / 1000) + 3600,
-        //     iat: Math.floor(Date.now() / 1000)
-        // };
-
-        const payload = {
-            iss: `did:sov:${issuerDid}`,
-            sub: did,
-            vc: {
-                '@context': ['https://www.w3.org/2018/credentials/v1'],
+        // Credential type configurations
+        const credentialConfigs = {
+            UniversityDegreeCredential: {
+                type: ['VerifiableCredential', 'UniversityDegreeCredential'],
+                credentialSubject: {
+                    id: did,
+                    name: 'Nguyễn Tài Nguyên',
+                    degree: 'Bachelor of Information Security',
+                    status: 'graduated',
+                    graduationDate: '2025-07-16'
+                }
+            },
+            DoctorCredential: {
                 type: ['VerifiableCredential', 'DoctorCredential'],
                 credentialSubject: {
                     id: did,
@@ -57,6 +46,19 @@ async function issueCredential() {
                     benh_vien: 'Bệnh viện A',
                     licenseNumber: 'VN-MOH-2025-123456'
                 }
+            }
+        };
+
+        // Get selected credential type
+        const credentialType = document.getElementById('credential-type').value;
+        if (!credentialType) throw new Error('Please select a credential type');
+
+        const payload = {
+            iss: `did:sov:${issuerDid}`,
+            sub: did,
+            vc: {
+                '@context': ['https://www.w3.org/2018/credentials/v1'],
+                ...credentialConfigs[credentialType]
             },
             exp: Math.floor(Date.now() / 1000) + 3600,
             iat: Math.floor(Date.now() / 1000)
@@ -92,6 +94,11 @@ async function issueCredential() {
         const didResult = document.getElementById('did-result');
         didResult.querySelector('pre').textContent = JSON.stringify(result, null, 2);
         didResult.classList.remove('hidden');
+
+        // Reset form and preview
+        document.getElementById('credential-type').value = '';
+        document.getElementById('issue-credential').disabled = true;
+        renderCredentialPreview('');
     } catch (error) {
         console.error('Error issuing credential:', error);
         createToast(error.message, 'error');
@@ -116,4 +123,58 @@ function createToast(message, type) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+function renderCredentialPreview(credentialType) {
+    const previewContainer = document.getElementById('credential-preview');
+    const previewContent = document.getElementById('preview-content');
+    
+    if (!credentialType) {
+        previewContainer.classList.add('hidden');
+        previewContent.innerHTML = '';
+        return;
+    }
+
+    const credentialConfigs = {
+        UniversityDegreeCredential: {
+            type: ['VerifiableCredential', 'UniversityDegreeCredential'],
+            credentialSubject: {
+                name: 'Nguyễn Tài Nguyên',
+                degree: 'Bachelor of Information Security',
+                status: 'graduated',
+                graduationDate: '2025-07-16'
+            }
+        },
+        DoctorCredential: {
+            type: ['VerifiableCredential', 'DoctorCredential'],
+            credentialSubject: {
+                ho_ten: 'Trần Thị B',
+                chuc_vu: 'Bác sĩ',
+                chuyen_khoa: 'Tim mạch',
+                benh_vien: 'Bệnh viện A',
+                licenseNumber: 'VN-MOH-2025-123456'
+            }
+        }
+    };
+
+    const config = credentialConfigs[credentialType];
+    if (!config) {
+        previewContainer.classList.add('hidden');
+        return;
+    }
+
+    const attributes = Object.entries(config.credentialSubject)
+        .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+        .join('');
+
+    previewContent.innerHTML = attributes;
+    previewContainer.classList.remove('hidden');
+}
+
 document.getElementById('issue-credential').addEventListener('click', issueCredential);
+
+// Enable/disable issue button and show preview based on dropdown selection
+document.getElementById('credential-type').addEventListener('change', () => {
+    const credentialType = document.getElementById('credential-type').value;
+    const issueButton = document.getElementById('issue-credential');
+    issueButton.disabled = !credentialType;
+    renderCredentialPreview(credentialType);
+});

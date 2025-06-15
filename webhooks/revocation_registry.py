@@ -10,13 +10,13 @@ async def revocation_registry_webhook(request: Request):
     try:
         revocation = await request.json()
         rev_reg_id = revocation.get("rev_reg_id")
-        logger.info(f'revocation registry event: {revocation}')
+        # logger.info(f'revocation registry event: {revocation}')
         # Store revocation event in Redis
         redis = request.app.state.redis
         revocation_key = f"revocation:{rev_reg_id}"
         
         if await redis.exists(revocation_key):
-            logger.warning(f"Duplicate revocation event ignored: {rev_reg_id}")
+            # logger.warning(f"Duplicate revocation event ignored: {rev_reg_id}")
             return {"status": "duplicate", "detail": "Revocation event already processed"}
         
         await redis.setex(revocation_key, 3600, "processed")

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import httpx
 import logging
 
@@ -41,6 +41,27 @@ class SendCredentialResponse(BaseModel):
     state: str
     thread_id: str
     cred_preview: CredentialPreview
+
+class CredentialAttribute(BaseModel):
+    name: str
+    value: str
+
+class CredentialPreview(BaseModel):
+    type: str = Field("https://didcomm.org/issue-credential/2.0/credential-preview", alias="@type")
+    attributes: List[CredentialAttribute]
+
+class IndyFilter(BaseModel):
+    cred_def_id: str
+
+class Filter(BaseModel):
+    indy: IndyFilter
+
+class CredentialProposalRequest(BaseModel):
+    comment: Optional[str] = "Requesting credential issuance"
+    connection_id: str
+    credential_preview: CredentialPreview
+    filter: Filter
+    auto_remove: bool = False
 
 async def send_credential(credential_request: SendCredentialRequest) -> SendCredentialResponse:
     url = f"{settings.ISSUER_AGENT_URL}/issue-credential-2.0/send"

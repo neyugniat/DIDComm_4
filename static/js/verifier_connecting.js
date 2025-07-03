@@ -26,8 +26,8 @@ document.getElementById('verifierFetchBtn')?.addEventListener('click', async () 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
-        handshake_protocols: ['https://didcomm.org/didexchange/1.0'],
-        my_label: 'VERIFIER',
+        handshake_protocols: ['https://didcomm.org/didexchange/1.1'],
+        my_label: 'B_BANK',
         use_public_did: false
       })
     });

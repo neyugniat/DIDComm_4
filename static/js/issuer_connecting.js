@@ -26,8 +26,8 @@ document.getElementById('issuerFetchBtn')?.addEventListener('click', async () =>
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         accept: ['didcomm/aip1', 'didcomm/aip2;env=rfc19'],
-        handshake_protocols: ['https://didcomm.org/didexchange/1.0'],
-        my_label: 'ISSUER',
+        handshake_protocols: ['https://didcomm.org/didexchange/1.1'],
+        my_label: 'C06',
         use_public_did: false
       })
     });

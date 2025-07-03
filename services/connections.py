@@ -18,7 +18,7 @@ class Connection(BaseModel):
 
 class CreateInvitationRequest(BaseModel):
     accept: List[str] = ["didcomm/aip1", "didcomm/aip2;env=rfc19"]
-    handshake_protocols: List[str] = ["https://didcomm.org/didexchange/1.0"]
+    handshake_protocols: List[str] = ["https://didcomm.org/didexchange/1.1"]
     my_label: str = "DIDComm Agent"
     use_public_did: bool = False
 
